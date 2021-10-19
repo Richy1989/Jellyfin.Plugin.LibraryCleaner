@@ -26,7 +26,7 @@ namespace Jellyfin.Plugin.Template
             this.libraryManager = libraryManager;
             cleanerCollector = new CleanerPluginManager(libraryManager);
 
-            var task = new ScheduledCleanerListingTask(libraryManager, CleanerPluginManager.CleanListItemList);
+            var task = new ScheduledCleanerListingTask(libraryManager, Instance.Configuration);
 
             var taskList = new List<IScheduledTask>
             {

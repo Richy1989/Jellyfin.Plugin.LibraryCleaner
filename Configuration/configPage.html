@@ -9,32 +9,18 @@
         <div data-role="content">
             <div class="content-primary">
                 <form id="CleanerConfigForm">
-                    <div class="selectContainer">
-                        <label class="selectLabel" for="Options">Several Options</label>
-                        <select is="emby-select" id="Options" name="Options" class="emby-select-withcolor emby-select">
-                            <option id="optOneOption" value="OneOption">One Option</option>
-                            <option id="optAnotherOption" value="AnotherOption">Another Option</option>
-                        </select>
+                    <div class="inputContainer">Filtes:</div>
+                    <div class="inputContainer">
+                        <label class="inputeLabel inputLabelUnfocused" for="AString">Includes [Comma separated]</label>
+                        <input id="containListInput" name="Contain List (Comma Seperated)" type="text" is="emby-input" />
                     </div>
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="AnInteger">An Integer</label>
-                        <input id="AnInteger" name="AnInteger" type="number" is="emby-input" min="0" />
-                        <div class="fieldDescription">A Description</div>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="TrueFalseSetting" name="TrueFalseCheckBox" type="checkbox" is="emby-checkbox" />
-                            <span>A Checkbox</span>
-                        </label>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputeLabel inputLabelUnfocused" for="AString">A String</label>
-                        <input id="AString" name="AString" type="text" is="emby-input" />
-                        <div class="fieldDescription">Another Description</div>
+                        <label class="inputeLabel inputLabelUnfocused" for="AString">Extensions [Comma separated]</label>
+                        <input id="extensionListInput" name="Contain List (Comma Seperated)" type="text" is="emby-input" />
                     </div>
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block emby-button">
-                            <span>Scan Cleaning Items</span>
+                            <span>Save Filters</span>
                         </button>
                     </div>
                     <div class="cleanerList"></div>
@@ -100,6 +86,9 @@
 
                     ApiClient.getPluginConfiguration(CleanerPluginConfig.pluginUniqueId).then(function (config)
                     {
+                        document.querySelector('#containListInput').value = config.ContainsFilterList;
+                        document.querySelector('#extensionListInput').value = config.ExtensionFilterList;
+
                         CleanerPluginConfig.config = config;
                         CleanerPluginConfig.populateCleanerList(page);
 
@@ -107,47 +96,20 @@
                     });    
                 });
 
-
-
             document.querySelector('#CleanerConfigForm')
                 .addEventListener('submit', function () {
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
-                        config.Options = document.querySelector('#Options').value;
-                        config.AnInteger = document.querySelector('#AnInteger').value;
-                        config.TrueFalseSetting = document.querySelector('#TrueFalseSetting').checked;
-                        config.AString = document.querySelector('#AString').value;
-                        ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+                    ApiClient.getPluginConfiguration(CleanerPluginConfig.pluginUniqueId).then(function (config) {
+                        config.ContainsFilterList = document.querySelector('#containListInput').value;
+                        config.ExtensionFilterList = document.querySelector('#extensionListInput').value;
+
+                        ApiClient.updatePluginConfiguration(CleanerPluginConfig.pluginUniqueId, config).then(function (result) {
                             Dashboard.processPluginConfigurationUpdateResult(result);
                         });
                     });
                     return false;
                 });
-
-
-
-
-
-
-            document.querySelector('#CleanerConfigForm')
-                .addEventListener('submit', function () {
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config)
-                    {
-                        config.Options = document.querySelector('#Options').value;
-                        config.AnInteger = document.querySelector('#AnInteger').value;
-                        config.TrueFalseSetting = document.querySelector('#TrueFalseSetting').checked;
-                        config.AString = document.querySelector('#AString').value;
-                        ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result)
-                        {
-                            Dashboard.processPluginConfigurationUpdateResult(result);
-                        });
-                    });
-                    return false;
-                });
-
         </script>
     </div>
 </body>

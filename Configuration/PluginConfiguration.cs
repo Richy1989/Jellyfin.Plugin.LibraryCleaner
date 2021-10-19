@@ -17,12 +17,11 @@ namespace Jellyfin.Plugin.Template.Configuration
         /// <value>urls of xml podcast feeds</value>
         public List<CleanListItem> CleanList => CleanerPluginManager.CleanListItemList;
 
-        //public List<FileInfo> CleanListFileInfo => CleanList.Select(a => new FileInfo(a)).ToList();
-
         // store configurable settings your plugin might need
         public bool TrueFalseSetting { get; set; }
         public int AnInteger { get; set; }
-        public string AString { get; set; }
+        public string ExtensionFilterList { get; set; }
+        public string ContainsFilterList { get; set; }
         public SomeOptions Options { get; set; }
 
         public PluginConfiguration()
@@ -31,7 +30,8 @@ namespace Jellyfin.Plugin.Template.Configuration
             Options = SomeOptions.AnotherOption;
             TrueFalseSetting = true;
             AnInteger = 2;
-            AString = "string";
+            ExtensionFilterList = ".html";
+            ContainsFilterList = "sample";
         }
     }
 }

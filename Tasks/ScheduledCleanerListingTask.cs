@@ -1,4 +1,5 @@
 ﻿using Jellyfin.Data.Events;
+using Jellyfin.Plugin.Template.Configuration;
 using Jellyfin.Plugin.Template.Models;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
@@ -16,6 +17,9 @@ namespace Jellyfin.Plugin.Template.Tasks
     {
         private ILibraryManager libraryManager;
         private List<CleanListItem> cleanItemList;
+        private PluginConfiguration pluginConfiguration;
+        private IProgress<double> progress;
+        private double countProg = 0;
 
         public string Name => "Cleaner Listing Task";
 
@@ -25,18 +29,20 @@ namespace Jellyfin.Plugin.Template.Tasks
 
         public string Category => "Maintenance";
 
-        public ScheduledCleanerListingTask(ILibraryManager libraryManager, List<CleanListItem> cleanItemList)
+        public ScheduledCleanerListingTask(ILibraryManager libraryManager, PluginConfiguration pluginConfiguration)
         {
-            this.cleanItemList = cleanItemList;
+            this.pluginConfiguration = pluginConfiguration;
+            this.cleanItemList = CleanerPluginManager.CleanListItemList;
             this.libraryManager = libraryManager;
         }
 
         public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
+            this.progress = progress;
             await Task.Run(() =>
             {
-                // progress?.Report(0.0);
-                 List<FileInfo> foundFiles = new List<FileInfo>();
+                progress?.Report(0.0);
+                List<FileInfo> foundFiles = new List<FileInfo>();
 
                 cleanItemList.Clear();
 
@@ -50,6 +56,7 @@ namespace Jellyfin.Plugin.Template.Tasks
                         DirectoryInfo directoryInfo = new DirectoryInfo(child.Path);
                         foundFiles.AddRange(WalkDirectoryTree(directoryInfo));
                     }
+                    progress?.Report(50.0);
                 }
                 catch (Exception ex)
                 {
@@ -64,8 +71,6 @@ namespace Jellyfin.Plugin.Template.Tasks
                         cleanItemList.Add(new CleanListItem { Path = file.FullName, Name = file.Name, Extension = file.Extension });
                     }
                 }
-
-                // progress?.Report(1.0);
             }, cancellationToken);
         }
 
@@ -74,11 +79,27 @@ namespace Jellyfin.Plugin.Template.Tasks
             List<FileInfo> returnFiles = new List<FileInfo>();
             FileInfo[] files = root.GetFiles();
 
+            //Filter files for Contains text and File Extensions
             foreach (var fi in files)
             {
-                //ToDo: Make Filters settable via config
-                if (fi.Extension == "db" || fi.Name.Contains("sample") || fi.FullName.Contains("sample") || fi.Extension == "html" || fi.Extension == "url")
-                    returnFiles.Add(fi);
+
+                var extensionList = pluginConfiguration.ExtensionFilterList.Split(",");
+
+                foreach (var extensionFilter in extensionList)
+                {
+                    if (fi.Extension == extensionFilter)
+                        returnFiles.Add(fi);
+                }
+
+                var containsList = pluginConfiguration.ContainsFilterList.Split(",");
+
+                foreach (var containsFilter in containsList)
+                {
+                    if (fi.Name.Contains(containsFilter))
+                        returnFiles.Add(fi);
+                }
+                countProg = countProg + 10;
+                progress.Report(countProg);
             }
 
             // Now find all the subdirectories under this directory.
